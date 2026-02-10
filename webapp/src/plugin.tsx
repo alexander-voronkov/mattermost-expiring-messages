@@ -16,8 +16,36 @@ window.setSelectedTTLDuration = (duration: string | null) => {
 
 export default class Plugin {
     initialize(registry: any) {
-        registry.registerPostActionComponent(PostTTLIndicator);
         registry.registerPostEditorActionComponent(ComposerTTLButton);
+        
+        // Add dropdown menu item to show TTL info
+        if (registry.registerPostDropdownMenuAction) {
+            registry.registerPostDropdownMenuAction(
+                '🔥 View TTL',
+                (postId: string) => {
+                    // This will be shown when clicking the menu item
+                    const post = (window as any).store?.getState()?.entities?.posts?.posts?.[postId];
+                    const ttl = post?.props?.ttl;
+                    if (ttl?.enabled && ttl?.expires_at) {
+                        const remaining = ttl.expires_at - Date.now();
+                        if (remaining > 0) {
+                            const mins = Math.floor(remaining / 60000);
+                            const secs = Math.floor((remaining % 60000) / 1000);
+                            alert(`Message expires in ${mins}m ${secs}s`);
+                        } else {
+                            alert('Message has expired and will be deleted soon');
+                        }
+                    } else {
+                        alert('This message does not have TTL enabled');
+                    }
+                },
+                // Filter - only show for posts with TTL
+                (postId: string) => {
+                    const post = (window as any).store?.getState()?.entities?.posts?.posts?.[postId];
+                    return !!post?.props?.ttl?.enabled;
+                }
+            );
+        }
 
         registry.registerMessageWillBePostedHook((post: any) => {
             if (selectedTTLDuration) {
