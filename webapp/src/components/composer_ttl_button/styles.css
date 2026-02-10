@@ -1,0 +1,109 @@
+.composer-ttl-container {
+    position: relative;
+    display: inline-block;
+}
+
+.composer-ttl-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--center-channel-color-56);
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.composer-ttl-button:hover {
+    background-color: var(--center-channel-color-08);
+    color: var(--center-channel-color);
+}
+
+.composer-ttl-button.active {
+    color: #ff6b35;
+    background-color: rgba(255, 107, 53, 0.1);
+}
+
+.flame-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.ttl-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+}
+
+.ttl-menu {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    min-width: 180px;
+    background: var(--center-channel-bg);
+    border: 1px solid var(--center-channel-color-16);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    overflow: hidden;
+}
+
+.ttl-menu-header {
+    padding: 12px 16px 8px;
+    border-bottom: 1px solid var(--center-channel-color-08);
+}
+
+.ttl-menu-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--center-channel-color-64);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ttl-menu-options {
+    padding: 4px 0;
+}
+
+.ttl-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.ttl-option:hover {
+    background-color: var(--center-channel-color-08);
+}
+
+.ttl-option.selected {
+    background-color: rgba(255, 107, 53, 0.1);
+    color: #ff6b35;
+}
+
+.ttl-option-label {
+    font-size: 14px;
+}
+
+.ttl-option-check {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.ttl-option-clear {
+    color: var(--error-text);
+    border-top: 1px solid var(--center-channel-color-08);
+    margin-top: 4px;
+}
+
+.ttl-option-clear:hover {
+    background-color: var(--error-text-08);
+}
