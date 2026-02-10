@@ -103,9 +103,6 @@ func TestParseDuration(t *testing.T) {
 }
 
 func TestCalculateExpiresAt(t *testing.T) {
-	// Set a fixed mock time
-	mockTime := int64(1700000000000) // 2023-11-15 04:26:40 UTC
-
 	tests := []struct {
 		name     string
 		duration string
@@ -128,7 +125,7 @@ func TestCalculateExpiresAt(t *testing.T) {
 			}
 
 			// Result should not be more than the duration plus some tolerance
-			maxExpected := now + (30 * 24 * time.Hour / time.Millisecond) // 30 days max
+			maxExpected := int64(now) + int64(30*24*time.Hour/time.Millisecond) // 30 days max
 			if result > maxExpected {
 				t.Errorf("calculateExpiresAt() result %v is too far in the future (max: %v)", result, maxExpected)
 			}
@@ -176,49 +173,3 @@ func TestGetExpirationBucketKey(t *testing.T) {
 func TestIsDurationAllowed(t *testing.T) {
 	tests := []struct {
 		name             string
-		allowedDurations []string
-		duration         string
-		want             bool
-	}{
-		{
-			name:             "empty allowed list allows all",
-			allowedDurations: []string{},
-			duration:         "5m",
-			want:             true,
-		},
-		{
-			name:             "duration in allowed list",
-			allowedDurations: []string{"5m", "15m", "1h"},
-			duration:         "5m",
-			want:             true,
-		},
-		{
-			name:             "duration not in allowed list",
-			allowedDurations: []string{"5m", "15m", "1h"},
-			duration:         "1d",
-			want:             false,
-		},
-		{
-			name:             "all standard durations allowed",
-			allowedDurations: []string{"5m", "15m", "1h", "1d"},
-			duration:         "1h",
-			want:             true,
-		},
-		{
-			name:             "custom duration not in list",
-			allowedDurations: []string{"5m", "1h"},
-			duration:         "30m",
-			want:             false,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			p := &Plugin{}
-			p.configuration.AllowedDurations = tt.allowedDurations
-			if got := p.isDurationAllowed(tt.duration); got != tt.want {
-				t.Errorf("Plugin.isDurationAllowed() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}

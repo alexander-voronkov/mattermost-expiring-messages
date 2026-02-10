@@ -23,9 +23,6 @@ jobs:
         with:
           node-version-file: .nvmrc
 
-      - name: Install webapp dependencies
-        run: cd webapp && npm ci
-
       - name: Run Go tests
         run: cd server && go test -v ./...
 
@@ -53,9 +50,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-
-      - name: Install webapp dependencies
-        run: cd webapp && npm ci
 
       - name: Run TypeScript check
         run: cd webapp && npm run lint
