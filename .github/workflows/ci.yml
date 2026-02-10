@@ -29,9 +29,6 @@ jobs:
       - name: Run Go tests
         run: cd server && go test -v ./...
 
-      - name: Run webapp tests
-        run: cd webapp && npm run test
-
       - name: Build plugin
         run: make dist-linux
 

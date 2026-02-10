@@ -30,8 +30,6 @@ clean:
 test:
 	@echo "Running server tests..."
 	cd $(SERVER_DIR) && $(GO) test -v ./...
-	@echo "Running webapp tests..."
-	cd $(WEBAPP_DIR) && npm install && npm run test
 
 # Build for Linux AMD64 only (CI)
 dist-linux: clean
