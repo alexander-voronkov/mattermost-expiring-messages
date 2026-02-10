@@ -11,11 +11,11 @@ module.exports = {
         },
     },
     externals: {
-        react: 'window.React',
-        'react-dom': 'window.ReactDOM',
-        redux: 'window.Redux',
-        'react-redux': 'window.ReactRedux',
-        'prop-types': 'window.PropTypes',
+        react: 'React',
+        'react-dom': 'ReactDOM',
+        redux: 'Redux',
+        'react-redux': 'ReactRedux',
+        'prop-types': 'PropTypes',
     },
     module: {
         rules: [
