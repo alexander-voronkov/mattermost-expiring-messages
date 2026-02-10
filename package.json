@@ -1,0 +1,10 @@
+{
+  "name": "mattermost-expiring-messages",
+  "version": "0.1.0",
+  "description": "Mattermost plugin for self-destructing messages",
+  "scripts": {
+    "build": "cd webapp && npm run build",
+    "watch": "cd webapp && npm run watch",
+    "lint": "cd webapp && npm run lint"
+  }
+}

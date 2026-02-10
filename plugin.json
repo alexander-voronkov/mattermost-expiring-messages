@@ -1,0 +1,42 @@
+{
+    "id": "com.fambear.expiring-messages",
+    "name": "Expiring Messages",
+    "description": "Self-destructing messages with time-to-live (TTL) support",
+    "version": "0.1.0",
+    "min_server_version": "9.0.0",
+    "server": {
+        "executables": {
+            "linux-amd64": "server/dist/plugin-linux-amd64",
+            "darwin-amd64": "server/dist/plugin-darwin-amd64",
+            "darwin-arm64": "server/dist/plugin-darwin-arm64",
+            "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+        }
+    },
+    "webapp": {
+        "bundle_path": "webapp/dist/main.js"
+    },
+    "settings_schema": {
+        "header": "Expiring Messages allows users to send messages that automatically disappear after a set time.",
+        "footer": "Learn more about [Expiring Messages](https://github.com/alexander-voronkov/mattermost-expiring-messages).",
+        "settings": [
+            {
+                "key": "enabled",
+                "display_name": "Enable Expiring Messages",
+                "type": "bool",
+                "default": true
+            },
+            {
+                "key": "allowed_durations",
+                "display_name": "Allowed TTL Durations",
+                "type": "multiselect",
+                "options": [
+                    {"display_name": "5 minutes", "value": "5m"},
+                    {"display_name": "15 minutes", "value": "15m"},
+                    {"display_name": "1 hour", "value": "1h"},
+                    {"display_name": "1 day", "value": "1d"}
+                ],
+                "default": ["5m", "15m", "1h", "1d"]
+            }
+        ]
+    }
+}
