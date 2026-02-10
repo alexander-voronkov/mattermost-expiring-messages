@@ -1,49 +1,59 @@
-package server
+package main
 
 import (
-	"github.com/mattermost/mattermost/server/v8/model"
+	"strings"
 )
 
 type configuration struct {
-	Enabled          bool     `json:"enabled"`
-	AllowedDurations []string `json:"allowed_durations"`
+	Enabled          bool   `json:"enabled"`
+	AllowedDurations string `json:"allowed_durations"`
 }
 
 const (
 	minServerVersion = "9.0.0"
+	defaultDurations = "5m,15m,1h,1d"
 )
 
 func (p *Plugin) OnConfigurationChange() error {
-	var configuration configuration
-	if err := p.API.LoadPluginConfiguration(&configuration); err != nil {
+	var cfg configuration
+	if err := p.API.LoadPluginConfiguration(&cfg); err != nil {
 		return err
 	}
 
 	p.configurationLock.Lock()
 	defer p.configurationLock.Unlock()
 
-	p.configuration = configuration
+	p.configuration = cfg
 	return nil
 }
 
+func (p *Plugin) getAllowedDurations() []string {
+	durations := p.configuration.AllowedDurations
+	if durations == "" {
+		durations = defaultDurations
+	}
+
+	parts := strings.Split(durations, ",")
+	result := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
+}
+
 func (p *Plugin) isDurationAllowed(duration string) bool {
-	if len(p.configuration.AllowedDurations) == 0 {
+	allowed := p.getAllowedDurations()
+	if len(allowed) == 0 {
 		return true
 	}
 
-	for _, allowed := range p.configuration.AllowedDurations {
-		if allowed == duration {
+	for _, a := range allowed {
+		if a == duration {
 			return true
 		}
 	}
 	return false
-}
-
-func (p *Plugin) GetPluginManifest() *model.Manifest {
-	return &model.Manifest{
-		Id:               "com.fambear.expiring-messages",
-		Name:             "Expiring Messages",
-		Version:          "0.1.0",
-		MinServerVersion: minServerVersion,
-	}
 }

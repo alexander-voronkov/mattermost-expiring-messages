@@ -1,11 +1,12 @@
-package server
+package main
 
 import (
+	"strings"
 	"sync"
 	"time"
 
-	"github.com/mattermost/mattermost/server/v8/model"
-	"github.com/mattermost/mattermost/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 )
 
 type Plugin struct {
@@ -18,7 +19,7 @@ type Plugin struct {
 
 func (p *Plugin) OnActivate() error {
 	if err := p.ensureIndex(); err != nil {
-		p.API.LogError("Failed to create database index", "error", err.Error())
+		p.API.LogError("Failed to initialize plugin", "error", err.Error())
 		return err
 	}
 
@@ -80,7 +81,7 @@ func (p *Plugin) MessageWillBePosted(_ *plugin.Context, post *model.Post) (*mode
 	return post, ""
 }
 
-func (p *Plugin) PostHasBeenPosted(_ *plugin.Context, post *model.Post) {
+func (p *Plugin) MessageHasBeenPosted(_ *plugin.Context, post *model.Post) {
 	if post == nil || post.Props == nil {
 		return
 	}
@@ -183,30 +184,42 @@ func (p *Plugin) deleteExpiredPosts() {
 
 	currentBucket := getExpirationBucketKey(nowTime)
 
-	keys, appErr := p.API.KVList(currentBucket, 0, maxPostsPerDeletion)
-	if appErr != nil {
-		return
-	}
-
-	for _, key := range keys {
-		postIDBytes, appErr := p.API.KVGet(currentBucket + key)
+	// KVList returns all keys, we filter by prefix
+	for page := 0; page < 10; page++ {
+		keys, appErr := p.API.KVList(page, maxPostsPerDeletion)
 		if appErr != nil {
-			continue
+			p.API.LogError("Failed to list KV keys", "error", appErr.Error())
+			break
 		}
 
-		postID := string(postIDBytes)
-		if postID == "" {
-			continue
+		if len(keys) == 0 {
+			break
 		}
 
-		if err := p.API.DeletePost(postID); err != nil {
-			p.API.LogError("Failed to delete expired post", "post_id", postID, "error", err.Error())
-		} else {
-			p.API.LogInfo("Deleted expired post", "post_id", postID)
-		}
+		for _, key := range keys {
+			if !strings.HasPrefix(key, currentBucket) {
+				continue
+			}
 
-		if appErr := p.API.KVDelete(currentBucket + key); appErr != nil {
-			p.API.LogError("Failed to delete expiration key", "key", currentBucket+key, "error", appErr.Error())
+			postIDBytes, appErr := p.API.KVGet(key)
+			if appErr != nil {
+				continue
+			}
+
+			postID := string(postIDBytes)
+			if postID == "" {
+				continue
+			}
+
+			if err := p.API.DeletePost(postID); err != nil {
+				p.API.LogError("Failed to delete expired post", "post_id", postID, "error", err.Error())
+			} else {
+				p.API.LogInfo("Deleted expired post", "post_id", postID)
+			}
+
+			if appErr := p.API.KVDelete(key); appErr != nil {
+				p.API.LogError("Failed to delete expiration key", "key", key, "error", appErr.Error())
+			}
 		}
 	}
 

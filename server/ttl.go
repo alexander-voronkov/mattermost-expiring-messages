@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mattermost/mattermost/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 var durationRegex = regexp.MustCompile(`^(\d+)([mhd])$`)

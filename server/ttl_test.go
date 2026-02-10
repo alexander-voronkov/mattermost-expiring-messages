@@ -1,10 +1,10 @@
-package server
+package main
 
 import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost/server/v8/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 func TestParseDuration(t *testing.T) {

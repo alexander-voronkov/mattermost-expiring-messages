@@ -1,10 +1,9 @@
 package main
 
 import (
-	"github.com/alexander-voronkov/mattermost-expiring-messages/server"
-	"github.com/mattermost/mattermost/server/v8/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin"
 )
 
 func main() {
-	plugin.Main(server.Plugin{})
+	plugin.ClientMain(&Plugin{})
 }

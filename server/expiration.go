@@ -1,15 +1,14 @@
-package server
+package main
 
 import (
 	"strconv"
+	"strings"
 	"time"
-
-	"github.com/mattermost/mattermost/server/v8/model"
 )
 
 const (
-	queueBucketSizeMinutes = 1
-	maxPostsPerDeletion    = 100
+	maxPostsPerDeletion = 100
+	expirationPrefix    = "expiration_bucket_"
 )
 
 func (p *Plugin) queuePostForDeletion(postID string, expiresAt int64) {
@@ -23,18 +22,34 @@ func (p *Plugin) queuePostForDeletion(postID string, expiresAt int64) {
 
 func getExpirationBucketKey(t time.Time) string {
 	bucketMinute := t.Unix() / 60
-	return "expiration_bucket_" + strconv.FormatInt(bucketMinute, 10) + "_"
+	return expirationPrefix + strconv.FormatInt(bucketMinute, 10) + "_"
+}
+
+func extractBucketNumber(key string) (int64, bool) {
+	if !strings.HasPrefix(key, expirationPrefix) {
+		return 0, false
+	}
+	rest := key[len(expirationPrefix):]
+	// Find the trailing underscore
+	idx := strings.Index(rest, "_")
+	if idx == -1 {
+		return 0, false
+	}
+	numStr := rest[:idx]
+	num, err := strconv.ParseInt(numStr, 10, 64)
+	if err != nil {
+		return 0, false
+	}
+	return num, true
 }
 
 func (p *Plugin) cleanupOldBuckets(now time.Time) {
-	cutoff := now.Add(-24 * time.Hour)
-	cutoffBucket := strconv.FormatInt(cutoff.Unix()/60, 10)
+	cutoffBucket := now.Add(-24 * time.Hour).Unix() / 60
 
-	prefix := "expiration_bucket_"
-
-	for i := 0; i < 100; i++ {
-		keys, appErr := p.API.KVList(prefix, i*100, 100)
+	for page := 0; page < 100; page++ {
+		keys, appErr := p.API.KVList(page, 100)
 		if appErr != nil {
+			p.API.LogError("Failed to list KV keys", "error", appErr.Error())
 			break
 		}
 
@@ -43,8 +58,14 @@ func (p *Plugin) cleanupOldBuckets(now time.Time) {
 		}
 
 		for _, key := range keys {
-			bucketNum := key[len("expiration_bucket_"):]
-			bucketNum = bucketNum[:len(bucketNum)-1]
+			if !strings.HasPrefix(key, expirationPrefix) {
+				continue
+			}
+
+			bucketNum, ok := extractBucketNumber(key)
+			if !ok {
+				continue
+			}
 
 			if bucketNum < cutoffBucket {
 				if appErr := p.API.KVDelete(key); appErr != nil {
