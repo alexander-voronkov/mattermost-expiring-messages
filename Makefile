@@ -17,7 +17,7 @@ build:
 	@echo "Building server..."
 	cd $(SERVER_DIR) && $(GO) build $(GOFLAGS) -o ../$(DIST_DIR)/$(BINARY_NAME)-linux-amd64
 	@echo "Building webapp..."
-	cd $(WEBAPP_DIR) && npm ci && npm run build
+	cd $(WEBAPP_DIR) && npm install && npm run build
 	@mkdir -p $(DIST_DIR)/webapp/dist
 	@cp $(WEBAPP_DIR)/dist/main.js $(DIST_DIR)/webapp/dist/
 
@@ -31,7 +31,7 @@ test:
 	@echo "Running server tests..."
 	cd $(SERVER_DIR) && $(GO) test -v ./...
 	@echo "Running webapp tests..."
-	cd $(WEBAPP_DIR) && npm ci && npm run test
+	cd $(WEBAPP_DIR) && npm install && npm run test
 
 # Build for Linux AMD64 only (CI)
 dist-linux: clean
@@ -39,7 +39,7 @@ dist-linux: clean
 	@mkdir -p $(DIST_DIR)/webapp/dist
 	@cp plugin.json $(DIST_DIR)/
 	@cd $(SERVER_DIR) && $(GO) build $(GOFLAGS) -o ../$(DIST_DIR)/$(BINARY_NAME)-linux-amd64
-	@cd $(WEBAPP_DIR) && npm ci && npm run build
+	@cd $(WEBAPP_DIR) && npm install && npm run build
 	@cp $(WEBAPP_DIR)/dist/main.js $(DIST_DIR)/webapp/dist/
 	@cd $(DIST_DIR) && tar -czvf expiring-messages-$(PLUGIN_VERSION).tar.gz plugin.json $(BINARY_NAME)-linux-amd64 webapp
 	@echo "Distribution created: $(DIST_DIR)/expiring-messages-$(PLUGIN_VERSION).tar.gz"
@@ -53,7 +53,7 @@ dist: clean
 	@cd $(SERVER_DIR) && GOOS=darwin GOARCH=amd64 $(GO) build $(GOFLAGS) -o ../$(DIST_DIR)/$(BINARY_NAME)-darwin-amd64
 	@cd $(SERVER_DIR) && GOOS=darwin GOARCH=arm64 $(GO) build $(GOFLAGS) -o ../$(DIST_DIR)/$(BINARY_NAME)-darwin-arm64
 	@cd $(SERVER_DIR) && GOOS=windows GOARCH=amd64 $(GO) build $(GOFLAGS) -o ../$(DIST_DIR)/$(BINARY_NAME)-windows-amd64.exe
-	@cd $(WEBAPP_DIR) && npm ci && npm run build
+	@cd $(WEBAPP_DIR) && npm install && npm run build
 	@cp $(WEBAPP_DIR)/dist/main.js $(DIST_DIR)/webapp/dist/
 	@cd $(DIST_DIR) && tar -czvf expiring-messages-$(PLUGIN_VERSION).tar.gz plugin.json $(BINARY_NAME)-* webapp
 	@echo "Distribution created: $(DIST_DIR)/expiring-messages-$(PLUGIN_VERSION).tar.gz"
