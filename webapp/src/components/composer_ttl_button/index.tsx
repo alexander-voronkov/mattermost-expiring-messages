@@ -1,11 +1,6 @@
-import React, {useState, useEffect} from 'react';
-import {Store} from 'redux';
+import React, {useState} from 'react';
 import TTLMenu from './ttl_menu';
 import './styles.css';
-
-interface ComposerTTLButtonProps {
-    store: Store<any>;
-}
 
 interface DurationOption {
     label: string;
@@ -19,18 +14,9 @@ const durations: DurationOption[] = [
     {label: '1 day', value: '1d'},
 ];
 
-const ComposerTTLButton: React.FC<ComposerTTLButtonProps> = (props) => {
-    const {store} = props;
+const ComposerTTLButton: React.FC = () => {
     const [showMenu, setShowMenu] = useState(false);
     const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
-
-    useEffect(() => {
-        const state = store.getState();
-        const pluginState = (state as any).plugins?.['com.fambear.expiring-messages'];
-        if (pluginState?.selectedDuration) {
-            setSelectedDuration(pluginState.selectedDuration);
-        }
-    }, [store]);
 
     const handleSelect = (duration: string) => {
         setSelectedDuration(duration);
