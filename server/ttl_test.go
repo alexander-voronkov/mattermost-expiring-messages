@@ -115,7 +115,6 @@ func TestCalculateExpiresAt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// We can't easily mock model.GetMillis(), so we just verify the result is reasonable
 			result := calculateExpiresAt(tt.duration)
 			now := model.GetMillis()
 
@@ -170,6 +169,61 @@ func TestGetExpirationBucketKey(t *testing.T) {
 	}
 }
 
-func TestIsDurationAllowed(t *testing.T) {
+func TestExtractBucketNumber(t *testing.T) {
 	tests := []struct {
-		name             string
+		name        string
+		key         string
+		want        int64
+		wantSuccess bool
+	}{
+		{
+			name:        "valid bucket key",
+			key:         "expiration_bucket_123_",
+			want:        123,
+			wantSuccess: true,
+		},
+		{
+			name:        "bucket with trailing underscore",
+			key:         "expiration_bucket_0_",
+			want:        0,
+			wantSuccess: true,
+		},
+		{
+			name:        "invalid prefix",
+			key:         "other_bucket_123_",
+			want:        0,
+			wantSuccess: false,
+		},
+		{
+			name:        "no trailing underscore",
+			key:         "expiration_bucket_123",
+			want:        0,
+			wantSuccess: false,
+		},
+		{
+			name:        "non-numeric bucket",
+			key:         "expiration_bucket_abc_",
+			want:        0,
+			wantSuccess: false,
+		},
+		{
+			name:        "empty",
+			key:         "",
+			want:        0,
+			wantSuccess: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := extractBucketNumber(tt.key)
+			if ok != tt.wantSuccess {
+				t.Errorf("extractBucketNumber() ok = %v, wantSuccess %v", ok, tt.wantSuccess)
+				return
+			}
+			if tt.wantSuccess && got != tt.want {
+				t.Errorf("extractBucketNumber() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
