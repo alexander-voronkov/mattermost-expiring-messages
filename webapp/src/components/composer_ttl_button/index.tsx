@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import TTLMenu from './ttl_menu';
 import './styles.css';
 
@@ -17,6 +17,14 @@ const durations: DurationOption[] = [
 const ComposerTTLButton: React.FC = () => {
     const [showMenu, setShowMenu] = useState(false);
     const [selectedDuration, setSelectedDuration] = useState<string | null>(null);
+
+    useEffect(() => {
+        const handleReset = () => {
+            setSelectedDuration(null);
+        };
+        window.addEventListener('ttl-reset', handleReset);
+        return () => window.removeEventListener('ttl-reset', handleReset);
+    }, []);
 
     const handleSelect = (duration: string) => {
         setSelectedDuration(duration);

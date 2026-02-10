@@ -21,11 +21,17 @@ export default class Plugin {
 
         registry.registerMessageWillBePostedHook((post: any) => {
             if (selectedTTLDuration) {
+                const duration = selectedTTLDuration;
+                // Reset immediately after capturing the value
+                selectedTTLDuration = null;
+                // Notify the button to reset its visual state
+                window.dispatchEvent(new CustomEvent('ttl-reset'));
+                
                 const newProps = {
                     ...(post.props || {}),
                     ttl: {
                         enabled: true,
-                        duration: selectedTTLDuration,
+                        duration,
                     },
                 };
                 return {post: {...post, props: newProps}};
