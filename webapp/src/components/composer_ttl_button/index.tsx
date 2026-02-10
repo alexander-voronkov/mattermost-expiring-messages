@@ -1,11 +1,10 @@
 import React, {useState, useEffect} from 'react';
 import {Store} from 'redux';
-import {GlobalState} from '@mattermost/client';
 import TTLMenu from './ttl_menu';
 import './styles.css';
 
 interface ComposerTTLButtonProps {
-    store: Store<GlobalState>;
+    store: Store<any>;
 }
 
 interface DurationOption {

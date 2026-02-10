@@ -44,7 +44,7 @@ func extractBucketNumber(key string) (int64, bool) {
 }
 
 func (p *Plugin) cleanupOldBuckets(now time.Time) {
-	cutoffBucket := now.Add(-24 * time.Hour).Unix() / 60
+	cutoffBucket := now.Add(-24*time.Hour).Unix() / 60
 
 	for page := 0; page < 100; page++ {
 		keys, appErr := p.API.KVList(page, 100)
