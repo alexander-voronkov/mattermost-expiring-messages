@@ -52,4 +52,4 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Run TypeScript check
-        run: cd webapp && npm run lint
+        run: cd webapp && npm install && npm run lint
