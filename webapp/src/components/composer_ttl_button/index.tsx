@@ -48,6 +48,7 @@ const ComposerTTLButton: React.FC = () => {
     return (
         <div className="composer-ttl-container">
             <button
+                type="button"
                 className={`composer-ttl-button ${selectedDuration ? 'active' : ''}`}
                 onClick={() => setShowMenu(!showMenu)}
                 title={selectedDuration ? `TTL: ${getSelectedLabel()}` : 'Set message expiration'}
