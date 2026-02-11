@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -183,6 +184,10 @@ func (p *Plugin) deleteExpiredPosts() {
 	nowTime := time.Unix(now/1000, 0)
 
 	currentBucket := getExpirationBucketKey(nowTime)
+	// Also check the previous bucket in case we missed it
+	prevBucket := getExpirationBucketKey(nowTime.Add(-1 * time.Minute))
+
+	bucketsToCheck := []string{currentBucket, prevBucket}
 
 	// KVList returns all keys, we filter by prefix
 	for page := 0; page < 10; page++ {
@@ -197,7 +202,14 @@ func (p *Plugin) deleteExpiredPosts() {
 		}
 
 		for _, key := range keys {
-			if !strings.HasPrefix(key, currentBucket) {
+			matchesBucket := false
+			for _, bucket := range bucketsToCheck {
+				if strings.HasPrefix(key, bucket) {
+					matchesBucket = true
+					break
+				}
+			}
+			if !matchesBucket {
 				continue
 			}
 
@@ -211,10 +223,11 @@ func (p *Plugin) deleteExpiredPosts() {
 				continue
 			}
 
-			if err := p.API.DeletePost(postID); err != nil {
-				p.API.LogError("Failed to delete expired post", "post_id", postID, "error", err.Error())
+			// Use permanent delete via HTTP API to avoid "(message deleted)" placeholder
+			if err := p.permanentDeletePost(postID); err != nil {
+				p.API.LogError("Failed to permanently delete expired post", "post_id", postID, "error", err.Error())
 			} else {
-				p.API.LogInfo("Deleted expired post", "post_id", postID)
+				p.API.LogInfo("Permanently deleted expired post", "post_id", postID)
 			}
 
 			if appErr := p.API.KVDelete(key); appErr != nil {
@@ -224,4 +237,55 @@ func (p *Plugin) deleteExpiredPosts() {
 	}
 
 	p.cleanupOldBuckets(nowTime)
+}
+
+// permanentDeletePost uses the REST API to permanently delete a post
+// instead of the soft delete that plugin API provides
+func (p *Plugin) permanentDeletePost(postID string) error {
+	config := p.API.GetConfig()
+	if config == nil || config.ServiceSettings.SiteURL == nil {
+		return p.API.DeletePost(postID) // Fallback to soft delete
+	}
+
+	siteURL := *config.ServiceSettings.SiteURL
+	url := siteURL + "/api/v4/posts/" + postID + "?permanent=true"
+
+	// Create bot user access token for authentication
+	botUserID := p.API.GetBundleInfo().BotUserID
+	if botUserID == "" {
+		// Fallback to soft delete if no bot user
+		return p.API.DeletePost(postID)
+	}
+
+	// Get or create a session token
+	session, appErr := p.API.CreateSession(&model.Session{
+		UserId:    botUserID,
+		ExpiresAt: model.GetMillis() + 60000, // 1 minute
+	})
+	if appErr != nil {
+		// Fallback to soft delete
+		return p.API.DeletePost(postID)
+	}
+	defer p.API.RevokeSession(session.Id)
+
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+session.Token)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		// If permanent delete fails (e.g., no permission), fallback to soft delete
+		p.API.LogWarn("Permanent delete failed, falling back to soft delete", "status", resp.StatusCode, "post_id", postID)
+		return p.API.DeletePost(postID)
+	}
+
+	return nil
 }
