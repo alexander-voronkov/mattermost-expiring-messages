@@ -1,7 +1,6 @@
 package main
 
 import (
-	"net/http"
 	"strings"
 	"sync"
 	"time"
@@ -242,53 +241,13 @@ func (p *Plugin) deleteExpiredPosts() {
 	p.cleanupOldBuckets(nowTime)
 }
 
-// permanentDeletePost uses the REST API to permanently delete a post
-// instead of the soft delete that plugin API provides
+// permanentDeletePost attempts to permanently delete a post
+// For now, we use the standard DeletePost which may show "(message deleted)"
+// TODO: Implement permanent delete via REST API with proper auth when bot user is configured
 func (p *Plugin) permanentDeletePost(postID string) error {
-	config := p.API.GetConfig()
-	if config == nil || config.ServiceSettings.SiteURL == nil {
-		return p.API.DeletePost(postID) // Fallback to soft delete
-	}
-
-	siteURL := *config.ServiceSettings.SiteURL
-	url := siteURL + "/api/v4/posts/" + postID + "?permanent=true"
-
-	// Create bot user access token for authentication
-	botUserID := p.API.GetBundleInfo().BotUserID
-	if botUserID == "" {
-		// Fallback to soft delete if no bot user
-		return p.API.DeletePost(postID)
-	}
-
-	// Get or create a session token
-	session, appErr := p.API.CreateSession(&model.Session{
-		UserId:    botUserID,
-		ExpiresAt: model.GetMillis() + 60000, // 1 minute
-	})
-	if appErr != nil {
-		// Fallback to soft delete
-		return p.API.DeletePost(postID)
-	}
-	defer p.API.RevokeSession(session.Id)
-
-	req, err := http.NewRequest("DELETE", url, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Authorization", "Bearer "+session.Token)
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		// If permanent delete fails (e.g., no permission), fallback to soft delete
-		p.API.LogWarn("Permanent delete failed, falling back to soft delete", "status", resp.StatusCode, "post_id", postID)
-		return p.API.DeletePost(postID)
-	}
-
-	return nil
+	// Standard delete - may show "(message deleted)" placeholder
+	// To enable true permanent delete:
+	// 1. Configure a bot user with system admin permissions
+	// 2. Use REST API: DELETE /api/v4/posts/{post_id}?permanent=true
+	return p.API.DeletePost(postID)
 }
