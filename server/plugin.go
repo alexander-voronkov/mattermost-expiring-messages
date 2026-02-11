@@ -249,5 +249,9 @@ func (p *Plugin) permanentDeletePost(postID string) error {
 	// To enable true permanent delete:
 	// 1. Configure a bot user with system admin permissions
 	// 2. Use REST API: DELETE /api/v4/posts/{post_id}?permanent=true
-	return p.API.DeletePost(postID)
+	appErr := p.API.DeletePost(postID)
+	if appErr != nil {
+		return appErr
+	}
+	return nil
 }
