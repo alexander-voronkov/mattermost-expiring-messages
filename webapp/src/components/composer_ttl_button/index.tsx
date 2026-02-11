@@ -30,13 +30,15 @@ const ComposerTTLButton: React.FC = () => {
         setSelectedDuration(duration);
         setShowMenu(false);
 
-        (window as any).setSelectedTTLDuration = duration;
+        // Call the function from plugin.tsx to set TTL for the next message
+        (window as any).setSelectedTTLDuration?.(duration);
     };
 
     const handleClear = () => {
         setSelectedDuration(null);
         setShowMenu(false);
-        delete (window as any).setSelectedTTLDuration;
+        // Clear TTL
+        (window as any).setSelectedTTLDuration?.(null);
     };
 
     const getSelectedLabel = () => {
