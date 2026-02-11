@@ -1,5 +1,6 @@
 import PostTTLIndicator from './components/post_ttl_indicator';
 import ComposerTTLButton from './components/composer_ttl_button';
+import ExpiringPost from './components/expiring_post';
 
 declare global {
     interface Window {
@@ -17,6 +18,9 @@ window.setSelectedTTLDuration = (duration: string | null) => {
 export default class Plugin {
     initialize(registry: any) {
         registry.registerPostEditorActionComponent(ComposerTTLButton);
+        
+        // Register custom post type renderer for expiring messages
+        registry.registerPostTypeComponent('custom_expiring', ExpiringPost);
         
         // Add dropdown menu item to show TTL info
         if (registry.registerPostDropdownMenuAction) {

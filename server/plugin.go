@@ -79,6 +79,9 @@ func (p *Plugin) MessageWillBePosted(_ *plugin.Context, post *model.Post) (*mode
 	ttl["expires_at"] = float64(expiresAt)
 	post.Props["ttl"] = ttl
 
+	// Set custom post type so webapp can render with countdown
+	post.Type = "custom_expiring"
+
 	return post, ""
 }
 

@@ -1,0 +1,62 @@
+.expiring-post {
+    position: relative;
+    padding: 8px 12px;
+    border-left: 3px solid #ff6b35;
+    background: rgba(255, 107, 53, 0.05);
+    border-radius: 4px;
+    margin: 4px 0;
+}
+
+.expiring-post.urgent {
+    border-left-color: #ff3b3b;
+    background: rgba(255, 59, 59, 0.08);
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.expiring-post.expired {
+    opacity: 0.5;
+    border-left-color: #666;
+    background: rgba(102, 102, 102, 0.05);
+}
+
+.expiring-post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.expiring-post-countdown {
+    font-size: 12px;
+    font-weight: 600;
+    color: #ff6b35;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    background: rgba(255, 107, 53, 0.15);
+    border-radius: 12px;
+}
+
+.expiring-post.urgent .expiring-post-countdown {
+    color: #ff3b3b;
+    background: rgba(255, 59, 59, 0.15);
+}
+
+.expiring-post.expired .expiring-post-countdown {
+    color: #666;
+    background: rgba(102, 102, 102, 0.15);
+}
+
+.expiring-post-message {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
